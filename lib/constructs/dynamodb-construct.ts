@@ -66,7 +66,7 @@ export class DynamoTable extends Construct {
     this.table = new dynamodb.Table(this, 'DynamoDBTable', {
       partitionKey: {
         name: 'id',
-        type: dynamodb.AttributeType.NUMBER,
+        type: dynamodb.AttributeType.STRING,
       },
       tableName,
       sortKey,

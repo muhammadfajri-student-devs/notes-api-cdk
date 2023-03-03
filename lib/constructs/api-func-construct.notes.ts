@@ -35,7 +35,7 @@ export const handler = async (
           new DeleteCommand({
             TableName: tableName,
             Key: {
-              id: Number(event.pathParameters!.id),
+              id: event.pathParameters!.id,
             },
           })
         );
@@ -47,7 +47,7 @@ export const handler = async (
           new GetCommand({
             TableName: tableName,
             Key: {
-              id: Number(event.pathParameters!.id),
+              id: event.pathParameters!.id,
             },
           })
         );
@@ -65,7 +65,7 @@ export const handler = async (
           new PutCommand({
             TableName: tableName,
             Item: {
-              id: Number(requestJSON.id),
+              id: Date.now().toString(16),
               title: requestJSON.title,
               desc: requestJSON.desc,
               priority: requestJSON.priority,
