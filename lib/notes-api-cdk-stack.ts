@@ -45,8 +45,11 @@ export class NotesApiCdkStack extends cdk.Stack {
 
     // * Define lambda function for notes API
     const apiFunc = new ApiLambda(this, 'LambdaFunction', {
-      role: lambdaRole,
       ...lambdaFunctionConfigs,
+      role: lambdaRole,
+      environment: {
+        DYNAMODB_TABLE: databaseConfigs.tableName,
+      },
     });
   }
 }

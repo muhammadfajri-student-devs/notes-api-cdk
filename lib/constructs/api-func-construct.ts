@@ -27,6 +27,11 @@ export class ApiLambdaProps {
   ephemeralStorageSize?: number;
 
   /**
+   * Key-value pairs that Lambda caches and makes available for your Lambda functions. Use environment variables to apply configuration changes, such as test and production environment configurations, without changing your Lambda function source code.
+   */
+  environment?: { [key: string]: string };
+
+  /**
    * The number of days log events are kept in CloudWatch Logs.
    *
    * @default RetentionDays.INFINITE
@@ -40,12 +45,19 @@ export class ApiLambda extends Construct {
   constructor(scope: Construct, id: string, props: ApiLambdaProps) {
     super(scope, id);
 
-    const { role, memorySize, ephemeralStorageSize, logRetention } = props;
+    const {
+      role,
+      memorySize,
+      ephemeralStorageSize,
+      environment,
+      logRetention,
+    } = props;
 
     this.lambdaFunction = new NodejsFunction(this, 'ApiLambdaFunction', {
       functionName: 'notes-api-function',
       description: 'lambda function for notes API',
       ephemeralStorageSize: Size.mebibytes(ephemeralStorageSize!),
+      environment,
       memorySize,
       role,
       logRetention,

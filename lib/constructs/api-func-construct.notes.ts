@@ -16,7 +16,7 @@ const dynamo = DynamoDBDocumentClient.from(client, {
   },
 });
 
-const tableName = 'notes';
+const tableName = process.env.DYNAMODB_TABLE;
 
 export const handler = async (
   event: APIGatewayProxyEventV2WithRequestContext<any>
