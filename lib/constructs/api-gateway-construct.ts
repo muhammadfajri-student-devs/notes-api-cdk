@@ -1,4 +1,5 @@
-import * as apigateway from 'aws-cdk-lib/aws-apigateway';
+import * as apigatewav2 from '@aws-cdk/aws-apigatewayv2-alpha';
+import { HttpLambdaIntegration } from '@aws-cdk/aws-apigatewayv2-integrations-alpha';
 import { IFunction } from 'aws-cdk-lib/aws-lambda';
 import { Construct } from 'constructs';
 
@@ -9,79 +10,45 @@ export interface ApiGatewayProps {
   handler: IFunction;
 
   /**
-   * Configure a custom domain name and map it to this API.
+   * Configure a custom domain with the API mapping resource to the HTTP API.
    */
-  domainNameConfigs?: apigateway.DomainNameOptions;
+  domainConfigs?: apigatewav2.DomainMappingOptions;
 
   /**
-   * Adds a CORS preflight OPTIONS method to this resource and all child resources.
+   * Specifies a CORS configuration for an API.
    *
    * @default disabled
    */
-  defaultCorsPreflightOptions?: apigateway.CorsOptions;
+  corsPreflight?: apigatewav2.CorsPreflightOptions;
 
   /**
-   * Weather implement rate limit for API or not.
+   * Specifies whether clients can invoke this HTTP API by using the default execute-api endpoint or custom domain.
    *
-   * @default false
+   * @default true
    */
-  enableRateLimitApi?: boolean;
-
-  /**
-   * The maximum number of requests that users can make within the specified time period.
-   *
-   * @default 10000
-   */
-  apiRequestLimit?: number;
-
-  /**
-   * The time period for which the maximum limit of requests applies.
-   *
-   * @default apigateway.Period.MONTH
-   */
-  apiRequestLimitPeriod?: apigateway.Period;
+  disableExecuteApiEndpoint?: boolean;
 }
 
 export class ApiGateway extends Construct {
-  public readonly lambdaRestApi: apigateway.LambdaRestApi;
+  public readonly httpApi: apigatewav2.HttpApi;
 
   constructor(scope: Construct, id: string, props: ApiGatewayProps) {
     super(scope, id);
 
-    const {
-      handler,
-      domainNameConfigs,
-      defaultCorsPreflightOptions,
-      enableRateLimitApi,
-      apiRequestLimit,
-      apiRequestLimitPeriod,
-    } = props;
+    const { handler, domainConfigs, corsPreflight, disableExecuteApiEndpoint } =
+      props;
 
     // * Define API Gateway
-    if (enableRateLimitApi) {
-      this.lambdaRestApi = new apigateway.LambdaRestApi(
-        this,
-        'LambdaApiGateway',
-        {
-          handler,
-          defaultCorsPreflightOptions,
-          domainName: domainNameConfigs,
-          cloudWatchRole: true,
-          deploy: true,
-          proxy: false,
-          restApiName: 'notes-api-gateway',
-        }
-      );
-    }
-
-    // * Create rate limit for API
-    new apigateway.RateLimitedApiKey(this, 'LambdaApiRateLimit', {
-      apiKeyName: 'notes-api-gateway-key',
-      stages: [this.lambdaRestApi.deploymentStage],
-      quota: {
-        limit: apiRequestLimit || 10000,
-        period: apiRequestLimitPeriod || apigateway.Period.MONTH,
-      },
+    this.httpApi = new apigatewav2.HttpApi(this, 'LambdaApiGateway', {
+      apiName: 'notes-api-gateway',
+      description: 'API Gateway for Lambda Function Notes API Service',
+      corsPreflight,
+      defaultDomainMapping: domainConfigs,
+      defaultIntegration: new HttpLambdaIntegration(
+        'DefaultHttpIntegration',
+        handler
+      ),
+      disableExecuteApiEndpoint,
     });
   }
 }

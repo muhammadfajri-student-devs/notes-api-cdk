@@ -1,7 +1,7 @@
 import { RemovalPolicy } from 'aws-cdk-lib';
-import { Period } from 'aws-cdk-lib/aws-apigateway';
 import { TableClass } from 'aws-cdk-lib/aws-dynamodb';
 import { RetentionDays } from 'aws-cdk-lib/aws-logs';
+import { CorsHttpMethod } from '@aws-cdk/aws-apigatewayv2-alpha';
 import { PipelineStackProps } from '../lib/pipeline-stack';
 
 export const devProps: PipelineStackProps = {
@@ -18,14 +18,16 @@ export const devProps: PipelineStackProps = {
       hostedZoneId: '123456790ABCDE',
       exactDomainName: 'api.foo.com',
     },
-    defaultCorsPreflightOptions: {
-      allowOrigins: ['foo.com', 'api.foo.com'],
-      allowMethods: ['OPTIONS', 'GET', 'POST', 'PUT', 'DELETE'],
+    corsPreflight: {
+      allowOrigins: ['*'],
+      allowMethods: [
+        CorsHttpMethod.GET,
+        CorsHttpMethod.PUT,
+        CorsHttpMethod.DELETE,
+        CorsHttpMethod.OPTIONS,
+      ],
       allowHeaders: ['Content-Type'],
     },
-    enableRateLimitApi: true,
-    apiRequestLimit: 3000,
-    apiRequestLimitPeriod: Period.WEEK,
   },
   databaseConfigs: {
     tableName: 'notes',

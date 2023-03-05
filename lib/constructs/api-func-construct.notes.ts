@@ -76,7 +76,9 @@ export const handler = async (
         break;
       // * Error handling
       default:
-        throw new Error(`Unsupported route: "${event.routeKey}"`);
+        throw new Error(
+          `Unsupported route: "${event.routeKey}". Please visit "/notes" instead.`
+        );
     }
   } catch (err: any) {
     statusCode = 400;

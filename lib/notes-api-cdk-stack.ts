@@ -3,7 +3,8 @@ import * as iam from 'aws-cdk-lib/aws-iam';
 import * as route53 from 'aws-cdk-lib/aws-route53';
 import * as route53Targets from 'aws-cdk-lib/aws-route53-targets';
 import * as awsApiGateway from 'aws-cdk-lib/aws-apigateway';
-import { Construct } from 'constructs';
+import * as apigatewayv2 from '@aws-cdk/aws-apigatewayv2-alpha';
+import { HttpLambdaIntegration } from '@aws-cdk/aws-apigatewayv2-integrations-alpha';
 import { Network, NetworkProps } from './constructs/network-construct';
 import { ApiLambda, ApiLambdaProps } from './constructs/api-func-construct';
 import { DynamoTable, DynamoTableProps } from './constructs/dynamodb-construct';
@@ -11,9 +12,10 @@ import {
   ApiGateway,
   ApiGatewayProps,
 } from './constructs/api-gateway-construct';
+import { Construct } from 'constructs';
 
 interface IApiGatewayConfigs
-  extends Omit<ApiGatewayProps, 'handler' | 'domainNameConfigs'> {
+  extends Omit<ApiGatewayProps, 'handler' | 'domainConfigs'> {
   domainConfigs: NetworkProps;
 }
 
@@ -46,6 +48,15 @@ export class NotesApiCdkStack extends cdk.Stack {
       hostedZoneId: apiGatewayConfigs.domainConfigs.hostedZoneId,
       exactDomainName: apiGatewayConfigs.domainConfigs.exactDomainName,
     });
+
+    const customDomainApiGw = new apigatewayv2.DomainName(
+      this,
+      'DomainApiGateway',
+      {
+        domainName: apiGatewayConfigs.domainConfigs.exactDomainName,
+        certificate: network.certificate,
+      }
+    );
 
     // * Define Database
     const dynamodb = new DynamoTable(this, 'DynamoDB', databaseConfigs);
@@ -90,30 +101,40 @@ export class NotesApiCdkStack extends cdk.Stack {
     });
 
     // * Define API Gateway for Lambda Function
-    const apiGw = new ApiGateway(this, 'ApiGateway', {
+    const apiGateway = new ApiGateway(this, 'HttpApiGateway', {
       ...apiGatewayConfigs,
       handler: lambda.lambdaFunction,
-      domainNameConfigs: {
-        domainName: apiGatewayConfigs.domainConfigs.exactDomainName,
-        certificate: network.certificate,
-        endpointType: awsApiGateway.EndpointType.REGIONAL,
+      domainConfigs: {
+        domainName: customDomainApiGw,
       },
     });
 
-    // set path and method that allowed
-    const notes = apiGw.lambdaRestApi.root.addResource('notes');
-    notes.addMethod('GET');
-    notes.addMethod('PUT');
+    const notesIntegration = new HttpLambdaIntegration(
+      'NotesIntegration',
+      lambda.lambdaFunction
+    );
 
-    const note = notes.addResource('{id}');
-    note.addMethod('GET');
-    note.addMethod('DELETE');
+    // set path and method that allowed
+    apiGateway.httpApi.addRoutes({
+      path: '/notes',
+      methods: [apigatewayv2.HttpMethod.GET, apigatewayv2.HttpMethod.PUT],
+      integration: notesIntegration,
+    });
+
+    apiGateway.httpApi.addRoutes({
+      path: '/notes/{id}',
+      methods: [apigatewayv2.HttpMethod.GET, apigatewayv2.HttpMethod.DELETE],
+      integration: notesIntegration,
+    });
 
     // * Attach API Gateway to Route53
     new route53.ARecord(this, 'ApiGatewayCustomDomain', {
       zone: network.hostedZone,
       target: route53.RecordTarget.fromAlias(
-        new route53Targets.ApiGateway(apiGw.lambdaRestApi)
+        new route53Targets.ApiGatewayv2DomainProperties(
+          customDomainApiGw.regionalDomainName,
+          customDomainApiGw.regionalHostedZoneId
+        )
       ),
       recordName: apiGatewayConfigs.domainConfigs.exactDomainName,
     });
