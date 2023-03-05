@@ -15,7 +15,11 @@ const app = new cdk.App({
 const ghBranch = app.node.tryGetContext('ghBranch');
 
 if (ghBranch === 'dev') {
-  const devStack = new NotesApiCdkStack(app, 'NotesApiStack-dev', devProps);
+  const devStack = new NotesApiCdkStack(
+    app,
+    'NotesApiServiceStack-dev',
+    devProps
+  );
 
   cdk.Tags.of(devStack).add('Environment', devProps.stage);
 } else if (ghBranch === 'refs/tags/releases') {

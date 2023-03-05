@@ -68,6 +68,7 @@ export class ApiGateway extends Construct {
           domainName: domainNameConfigs,
           cloudWatchRole: true,
           deploy: true,
+          proxy: false,
           restApiName: 'notes-api-gateway',
         }
       );

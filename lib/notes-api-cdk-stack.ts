@@ -2,6 +2,7 @@ import * as cdk from 'aws-cdk-lib';
 import * as iam from 'aws-cdk-lib/aws-iam';
 import * as route53 from 'aws-cdk-lib/aws-route53';
 import * as route53Targets from 'aws-cdk-lib/aws-route53-targets';
+import * as awsApiGateway from 'aws-cdk-lib/aws-apigateway';
 import { Construct } from 'constructs';
 import { Network, NetworkProps } from './constructs/network-construct';
 import { ApiLambda, ApiLambdaProps } from './constructs/api-func-construct';
@@ -62,16 +63,22 @@ export class NotesApiCdkStack extends cdk.Stack {
       ],
     });
 
+    const logPolicy = new iam.PolicyStatement({
+      resources: ['*'],
+      effect: iam.Effect.ALLOW,
+      actions: [
+        'logs:CreateLogGroup',
+        'logs:CreateLogStream',
+        'logs:PutLogEvents',
+      ],
+    });
+
     const lambdaRole = new iam.Role(this, 'LambdaRole', {
       roleName: 'lambda-notes-api-role',
       assumedBy: new iam.ServicePrincipal('lambda.amazonaws.com'),
-      managedPolicies: [
-        iam.ManagedPolicy.fromAwsManagedPolicyName(
-          'AWSLambdaBasicExecutionRole'
-        ),
-      ],
     });
     lambdaRole.addToPolicy(dbPolicy);
+    lambdaRole.addToPolicy(logPolicy);
 
     // * Define lambda function for notes API
     const lambda = new ApiLambda(this, 'LambdaFunction', {
@@ -89,6 +96,7 @@ export class NotesApiCdkStack extends cdk.Stack {
       domainNameConfigs: {
         domainName: apiGatewayConfigs.domainConfigs.exactDomainName,
         certificate: network.certificate,
+        endpointType: awsApiGateway.EndpointType.REGIONAL,
       },
     });
 

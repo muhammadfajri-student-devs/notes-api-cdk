@@ -1,4 +1,5 @@
 import { Construct } from 'constructs';
+import { Runtime } from 'aws-cdk-lib/aws-lambda';
 import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';
 import { RetentionDays } from 'aws-cdk-lib/aws-logs';
 import { Size } from 'aws-cdk-lib';
@@ -53,9 +54,10 @@ export class ApiLambda extends Construct {
       logRetention,
     } = props;
 
-    this.lambdaFunction = new NodejsFunction(this, 'ApiLambdaFunction', {
+    this.lambdaFunction = new NodejsFunction(this, 'notes', {
       functionName: 'notes-api-function',
       description: 'lambda function for notes API',
+      runtime: Runtime.NODEJS_18_X,
       ephemeralStorageSize: Size.mebibytes(ephemeralStorageSize!),
       environment,
       memorySize,
