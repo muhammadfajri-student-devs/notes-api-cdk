@@ -11,7 +11,14 @@ export interface ApiGatewayProps {
   /**
    * Configure a custom domain name and map it to this API.
    */
-  domainName?: apigateway.DomainNameOptions;
+  domainNameConfigs?: apigateway.DomainNameOptions;
+
+  /**
+   * Adds a CORS preflight OPTIONS method to this resource and all child resources.
+   *
+   * @default disabled
+   */
+  defaultCorsPreflightOptions?: apigateway.CorsOptions;
 
   /**
    * Weather implement rate limit for API or not.
@@ -43,7 +50,8 @@ export class ApiGateway extends Construct {
 
     const {
       handler,
-      domainName,
+      domainNameConfigs,
+      defaultCorsPreflightOptions,
       enableRateLimitApi,
       apiRequestLimit,
       apiRequestLimitPeriod,
@@ -56,7 +64,8 @@ export class ApiGateway extends Construct {
         'LambdaApiGateway',
         {
           handler,
-          domainName,
+          defaultCorsPreflightOptions,
+          domainName: domainNameConfigs,
           cloudWatchRole: true,
           deploy: true,
           restApiName: 'notes-api-gateway',

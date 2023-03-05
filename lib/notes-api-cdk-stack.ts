@@ -1,6 +1,5 @@
 import * as cdk from 'aws-cdk-lib';
 import * as iam from 'aws-cdk-lib/aws-iam';
-import * as apigateway from 'aws-cdk-lib/aws-apigateway';
 import { Construct } from 'constructs';
 import { ApiLambda, ApiLambdaProps } from './constructs/api-func-construct';
 import { DynamoTable, DynamoTableProps } from './constructs/dynamodb-construct';
@@ -70,7 +69,7 @@ export class NotesApiCdkStack extends cdk.Stack {
 
     // * Define API Gateway for Lambda Function
     const apiGw = new ApiGateway(this, 'ApiGateway', {
-      ...lambdaFunctionConfigs,
+      ...apiGatewayConfigs,
       handler: lambda.lambdaFunction,
     });
 
