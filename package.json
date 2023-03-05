@@ -8,7 +8,16 @@
     "build": "tsc",
     "watch": "tsc -w",
     "test": "jest",
-    "cdk": "cdk"
+    "cdk": "cdk",
+    "ls:dev": "GITHUB_REF=dev cdk ls",
+    "synth:dev": "GITHUB_REF=dev cdk synth",
+    "deploy:dev": "GITHUB_REF=dev cdk deploy --require-approval never",
+    "diff:dev": "GITHUB_REF=dev cdk diff",
+    "destroy:dev": "GITHUB_REF=dev cdk destroy",
+    "ls:prod": "GITHUB_REF=refs/tags/releases cdk ls",
+    "synth:prod": "GITHUB_REF=refs/tags/releases cdk synth",
+    "ls": "GITHUB_REF=dev cdk ls && GITHUB_REF=refs/tags/releases cdk ls",
+    "synth": "GITHUB_REF=dev cdk synth && GITHUB_REF=refs/tags/releases cdk synth"
   },
   "devDependencies": {
     "@types/jest": "^29.4.0",
