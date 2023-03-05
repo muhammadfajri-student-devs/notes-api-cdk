@@ -13,6 +13,11 @@ export const devProps: PipelineStackProps = {
     logRetention: RetentionDays.ONE_DAY,
   },
   apiGatewayConfigs: {
+    domainConfigs: {
+      zoneName: 'foo.com',
+      hostedZoneId: '123456790ABCDE',
+      exactDomainName: 'api.foo.com',
+    },
     defaultCorsPreflightOptions: {
       allowOrigins: ['foo.com', 'api.foo.com'],
       allowMethods: ['OPTIONS', 'GET', 'POST', 'PUT', 'DELETE'],
