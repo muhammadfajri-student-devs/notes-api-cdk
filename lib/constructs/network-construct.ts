@@ -55,11 +55,7 @@ export class Network extends Construct {
     this.certificate = new acm.Certificate(this, 'Certificate', {
       validation: acm.CertificateValidation.fromDns(this.hostedZone),
       domainName: zoneName,
-      subjectAlternativeNames: [
-        `*.${zoneName}`,
-        `${exactDomainName}`,
-        `*.${exactDomainName}`,
-      ],
+      subjectAlternativeNames: [`*.${zoneName}`],
     });
 
     // * Define certificate from us-east-1

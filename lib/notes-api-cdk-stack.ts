@@ -2,9 +2,7 @@ import * as cdk from 'aws-cdk-lib';
 import * as iam from 'aws-cdk-lib/aws-iam';
 import * as route53 from 'aws-cdk-lib/aws-route53';
 import * as route53Targets from 'aws-cdk-lib/aws-route53-targets';
-import * as awsApiGateway from 'aws-cdk-lib/aws-apigateway';
 import * as apigatewayv2 from '@aws-cdk/aws-apigatewayv2-alpha';
-import { HttpLambdaIntegration } from '@aws-cdk/aws-apigatewayv2-integrations-alpha';
 import { Network, NetworkProps } from './constructs/network-construct';
 import { ApiLambda, ApiLambdaProps } from './constructs/api-func-construct';
 import { DynamoTable, DynamoTableProps } from './constructs/dynamodb-construct';
@@ -98,33 +96,6 @@ export class NotesApiCdkStack extends cdk.Stack {
       environment: {
         DYNAMODB_TABLE: databaseConfigs.tableName,
       },
-    });
-
-    // * Define API Gateway for Lambda Function
-    const apiGateway = new ApiGateway(this, 'HttpApiGateway', {
-      ...apiGatewayConfigs,
-      handler: lambda.lambdaFunction,
-      domainConfigs: {
-        domainName: customDomainApiGw,
-      },
-    });
-
-    const notesIntegration = new HttpLambdaIntegration(
-      'NotesIntegration',
-      lambda.lambdaFunction
-    );
-
-    // set path and method that allowed
-    apiGateway.httpApi.addRoutes({
-      path: '/notes',
-      methods: [apigatewayv2.HttpMethod.GET, apigatewayv2.HttpMethod.PUT],
-      integration: notesIntegration,
-    });
-
-    apiGateway.httpApi.addRoutes({
-      path: '/notes/{id}',
-      methods: [apigatewayv2.HttpMethod.GET, apigatewayv2.HttpMethod.DELETE],
-      integration: notesIntegration,
     });
 
     // * Attach API Gateway to Route53
