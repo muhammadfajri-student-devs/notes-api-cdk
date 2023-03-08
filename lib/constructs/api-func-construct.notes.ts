@@ -6,6 +6,7 @@ import {
   PutCommand,
   GetCommand,
   DeleteCommand,
+  UpdateCommand,
 } from '@aws-sdk/lib-dynamodb';
 
 const client = new DynamoDBClient({});
@@ -29,7 +30,7 @@ export const handler = async (
 
   try {
     switch (event.routeKey) {
-      // * Delete method API
+      // * Delete notes
       case 'DELETE /notes/{id}':
         await dynamo.send(
           new DeleteCommand({
@@ -52,6 +53,28 @@ export const handler = async (
           })
         );
         body = body.Item;
+        break;
+      // * Update notes
+      case 'PUT /notes/{id}':
+        let updateJSON = JSON.parse(event.body!);
+        body = await dynamo.send(
+          new UpdateCommand({
+            TableName: tableName,
+            Key: {
+              id: event.pathParameters!.id,
+            },
+            ExpressionAttributeNames: {
+              '#desc': 'desc', // need this because desc is reserved keyword
+            },
+            UpdateExpression: 'SET title = :t, #desc = :d, priority = :p',
+            ExpressionAttributeValues: {
+              ':t': updateJSON.title,
+              ':d': updateJSON.desc,
+              ':p': updateJSON.priority,
+            },
+          })
+        );
+        body = `Update item ${event.pathParameters!.id}`;
         break;
       // * List all notes
       case 'GET /notes':
