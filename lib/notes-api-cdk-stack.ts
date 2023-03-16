@@ -60,39 +60,52 @@ export class NotesApiCdkStack extends cdk.Stack {
     const dynamodb = new DynamoTable(this, 'DynamoDB', databaseConfigs);
 
     // * Create policy role for lambda function
-    const dbPolicy = new iam.PolicyStatement({
-      resources: [`arn:aws:dynamodb:${this.region}:${this.account}:table/*`],
-      effect: iam.Effect.ALLOW,
-      actions: [
-        'dynamodb:DeleteItem',
-        'dynamodb:GetItem',
-        'dynamodb:PutItem',
-        'dynamodb:Scan',
-        'dynamodb:UpdateItem',
-      ],
-    });
+    // const dbPolicy = new iam.PolicyStatement({
+    //   resources: [`arn:aws:dynamodb:${this.region}:${this.account}:table/*`],
+    //   effect: iam.Effect.ALLOW,
+    //   actions: [
+    //     'dynamodb:DeleteItem',
+    //     'dynamodb:GetItem',
+    //     'dynamodb:PutItem',
+    //     'dynamodb:Scan',
+    //     'dynamodb:UpdateItem',
+    //   ],
+    // });
 
-    const logPolicy = new iam.PolicyStatement({
-      resources: ['*'],
-      effect: iam.Effect.ALLOW,
-      actions: [
-        'logs:CreateLogGroup',
-        'logs:CreateLogStream',
-        'logs:PutLogEvents',
-      ],
-    });
+    // const logPolicy = new iam.PolicyStatement({
+    //   resources: ['*'],
+    //   effect: iam.Effect.ALLOW,
+    //   actions: [
+    //     'logs:CreateLogGroup',
+    //     'logs:CreateLogStream',
+    //     'logs:PutLogEvents',
+    //   ],
+    // });
 
-    const lambdaRole = new iam.Role(this, 'LambdaRole', {
-      roleName: 'lambda-notes-api-role',
-      assumedBy: new iam.ServicePrincipal('lambda.amazonaws.com'),
-    });
-    lambdaRole.addToPolicy(dbPolicy);
-    lambdaRole.addToPolicy(logPolicy);
+    // const lambdaRole = new iam.Role(this, 'LambdaRole', {
+    //   roleName: 'lambda-notes-api-role',
+    //   assumedBy: new iam.ServicePrincipal('lambda.amazonaws.com'),
+    // });
+    // lambdaRole.addToPolicy(dbPolicy);
+    // lambdaRole.addToPolicy(logPolicy);
+
+    // * Import existing role instead of creating the new one
+    const role = iam.Role.fromRoleArn(
+      this,
+      'Role',
+      `arn:aws:iam::${this.account}:role/LabRole`,
+      {
+        // Set 'mutable' to 'false' to use the role as-is and prevent adding new
+        // policies to it. The default is 'true', which means the role may be
+        // modified as part of the deployment.
+        mutable: false,
+      }
+    );
 
     // * Define lambda function for notes API
     const lambda = new ApiLambda(this, 'LambdaFunction', {
       ...lambdaFunctionConfigs,
-      role: lambdaRole,
+      role,
       environment: {
         DYNAMODB_TABLE: databaseConfigs.tableName,
       },
